@@ -486,6 +486,3 @@ function mouseReleased() {
         }
     }
 }
-
-
-
