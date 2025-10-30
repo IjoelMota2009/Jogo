@@ -303,34 +303,31 @@ function criarPlataforma(x, y, w, h, options = {}) {
 }
 
 function desenharHotbar() {
-    let numSlots = inventario.length;
-    let larguraSlot = 60;
-    let xInicial = width / 2 - (numSlots * larguraSlot) / 2;
-    let y = height - 80;
+    let hotbarX = width / 2 - 455; // centraliza 9 slots de 50px
+    let hotbarY = height - 745;
+    let slotSize = 70;
+    let padding = 15;
 
-    for (let i = 0; i < numSlots; i++) {
-        let x = xInicial + i * larguraSlot;
+    for (let i = 0; i < inventario.length; i++) {
+        let slotX = hotbarX + i * (slotSize + padding);
 
-        // Fundo do slot
-        stroke(200);
-        strokeWeight(2);
-        if (i === slotAtivo) {
-            fill(100, 200, 255, 200); // selecionado
-        } else {
-            fill(50, 50, 50, 180);
+        // fundo do slot
+        fill(50);
+        if (i === slotAtivo) fill(255, 255, 0); // destaca slot ativo
+        rect(slotX, hotbarY, slotSize, slotSize, 5);
+
+        // item dentro do slot
+        let item = inventario[i];
+        if (item) {
+            fill(255);
+            textAlign(CENTER, CENTER);
+            textSize(12);
+            text(item.nome, slotX + slotSize / 2, hotbarY + 15);
+
+            // quantidade
+            textSize(14);
+            text(item.quantidade, slotX + slotSize / 2, hotbarY + 35);
         }
-        rect(x, y, larguraSlot - 10, larguraSlot - 10, 8);
-
-        // Nome ou ícone do item
-        noStroke();
-        fill(255);
-        textAlign(CENTER, CENTER);
-        textSize(12);
-        text(inventario[i].nome, x + (larguraSlot - 10) / 2, y + 15);
-
-        // Quantidade
-        textSize(14);
-        text(inventario[i].quantidade, x + (larguraSlot - 10) / 2, y + 40);
     }
 }
 // teclas 
@@ -346,6 +343,7 @@ function keyPressed() {
         if (key === 'a' || key === 'A') ferramentaAtiva = "adicionar";
         if (key === 'm' || key === 'M') ferramentaAtiva = "mover";
         if (key === 'r' || key === 'R') ferramentaAtiva = "redimensionar";
+        if (key === 'z' || key === 'Z') ferramentaAtiva = "remover";
     } else {
         // pulo do personagem
         if ((key === 'w' || keyCode === UP_ARROW) && noChao) {
@@ -357,6 +355,8 @@ function keyPressed() {
     
         console.log("Slot ativo:", slotAtivo, inventario[slotAtivo].nome);
     }
+
+    
 }
 // -------------- mouse -------
 function mousePressed() {
@@ -367,26 +367,28 @@ function mousePressed() {
     let item = inventario[slotAtivo];
     if (item && item.quantidade > 0) {
         if (item.nome === "plataformaMovel") {
-            plataformas.push({
-                x: mouseX,
-                y: mouseY,
-                w: 150,
-                h: 50,
-                dx: 1,
-                dy: 0,
-                minX: mouseX - 100,
-                maxX: mouseX + 100,
-                adicionado: true
-            });
-        } else if (item.nome === "blocoNormal") {
-            plataformas.push({
-                x: mouseX,
-                y: mouseY,
-                w: 150,
-                h: 50,
-                adicionado: true
-            });
-        }
+    plataformas.push({
+        x: mouseX,
+        y: mouseY,
+        w: 150,
+        h: 50,
+        dx: 1,
+        dy: 0,
+        minX: mouseX - 100,
+        maxX: mouseX + 100,
+        adicionado: true,
+        nomeItem: item.nome  // <-- adicione esta linha
+    });
+} else if (item.nome === "blocoNormal") {
+    plataformas.push({
+        x: mouseX,
+        y: mouseY,
+        w: 150,
+        h: 50,
+        adicionado: true,
+        nomeItem: item.nome  // <-- adicione esta linha
+    });
+}
         item.quantidade--;
     
             console.log(item.nome + " adicionado! Restam:", item.quantidade);
@@ -405,8 +407,14 @@ function mousePressed() {
             mouseY < p.y + p.h &&
             p.adicionado
         ) {
+            // aumenta a quantidade do item no inventario
+            let item = inventario.find(it => it.nome === p.nomeItem);
+            if (item) {
+                item.quantidade++;
+            }
+
             plataformas.splice(i, 1);
-            console.log("🗑️ Bloco removido!");
+            console.log("🗑️ Bloco removido! Quantidade restaurada:", item ? item.quantidade : 0);
             break;
         }
     }
