@@ -1,10 +1,11 @@
 // ================== VARIÁVEIS ==================
 let caio;
 let blocoMeio;
+let pedra;
 
 let inventario = [
-    { nome: "plataformaMovel", quantidade: 3 },
-    { nome: "blocoNormal", quantidade: 10 },
+    { nome: "plataformaMovel", quantidade: 0 },
+    { nome: "blocoNormal", quantidade: 0 },
     { nome: "puzzleBlock", quantidade: 0 } // blocos que o jogador coleta (9 no total espalhados)
 ];
 let slotAtivo = 0; // qual item está selecionado na hotbar
@@ -55,7 +56,7 @@ let saida = { x: WORLD_WIDTH - 120, y: 220, w: 60, h: 80, active: false }; // sa
 let venceu = false;
 
 let posicoesAlvo = [
-  { x: 600, y: 300, w: 150, h: 50, ok: false },
+  { x: 90, y: 350, w: 160, h: 50, ok: false },
   { x: 1500, y: 350, w: 150, h: 50, ok: false },
   { x: 2300, y: 300, w: 150, h: 50, ok: false }
 ];
@@ -66,6 +67,7 @@ let puzzlesCompletos = 0; // conta quantos alvos foram completados (recarrega en
 function preload(){
     blocoMeio = loadImage("blocos img/bloco_meio.png");
     caio = loadImage("persona/Caio.png");
+    pedra = loadImage("blocos img/pedra.png");
 }
 
 // ================== SETUP ==================
@@ -74,23 +76,22 @@ function setup() {
     posY = height - 150;
 
     // cria mapa base (plataformas iniciais). Mantive as plataformas que você já tinha e adicionei mais espalhadas
-    criarPlataforma(300, 550, 150, 35);
-    criarPlataforma(500, 400, 150, 35, { dx: 2, minX: 400, maxX: 700 });
-    criarPlataforma(800, 300, 150, 35, { dy: 1.5, minY: 250, maxY: 500 });
+criarPlataforma(800, 300, 150, 35, { textura: "pedra" });
+criarPlataforma(110, 450, 150, 35, { dx: 2, minX: 290, maxX: 700, textura: "blocoMeio" });
+criarPlataforma(1150, 200, 80, 35, { textura: "pedra" });
+criarPlataforma(800, 300, 150, 35, { dy: 1.5, minY: 250, maxY: 500, textura: "blocoMeio" });
 
-    // adicionais para ampliar o mapa (áreas 2 e 3)
-    criarPlataforma(1200, 520, 150, 35);
-    criarPlataforma(1400, 380, 150, 35, { dx: 1.5, minX: 1400, maxX: 1600 });
-    criarPlataforma(1600, 300, 150, 35);
+criarPlataforma(1200, 520, 150, 35, { textura: "pedra" });
+criarPlataforma(1400, 380, 150, 35, { dx: 1.5, minX: 1400, maxX: 1600, textura: "pedra" });
+criarPlataforma(1600, 300, 150, 35, { textura: "pedra" });
 
-    criarPlataforma(2000, 520, 200, 35);
-    criarPlataforma(2400, 420, 180, 35);
-    criarPlataforma(2600, 320, 180, 35);
-
+criarPlataforma(2000, 520, 200, 35, { textura: "blocoMeio" });
+criarPlataforma(2400, 420, 180, 35, { textura: "blocoMeio" });
+criarPlataforma(2600, 320, 180, 35, { textura: "blocoMeio" });
     // colecionáveis (9 espalhados pelo mapa)
     colecionaveis = [
-        { x: 400, y: 520, w: 30, h: 30, color: [200, 50, 50], collected: false },
-        { x: 650, y: 360, w: 30, h: 30, color: [50, 200, 50], collected: false },
+        { x: 1290, y: 670, w: 30, h: 30, color: [200, 50, 50], collected: false },
+        { x: 450, y: 60, w: 30, h: 30, color: [50, 200, 50], collected: false },
         { x: 920, y: 280, w: 30, h: 30, color: [50, 100, 200], collected: false },
 
         { x: 1250, y: 480, w: 30, h: 30, color: [200, 150, 50], collected: false },
@@ -116,18 +117,9 @@ function draw() {
 
     // chão (repete até WORLD_WIDTH)
     chao();
-
-    // desenha plataformas
-    for (let p of plataformas) {
-        desenharPlataforma(p.x, p.y, p.w, p.h);
-
-        // handle de redimensionamento no modo editor (visível apenas no editor)
-        if (modoEditor && ferramentaAtiva === "redimensionar") {
-            fill(255, 0, 0);
-            noStroke();
-            rect(p.x + p.w - handleSize / 2, p.y + p.h - handleSize / 2, handleSize, handleSize);
-        }
-    }
+for (let p of plataformas) {
+  desenharPlataforma(p.x, p.y, p.w, p.h, p.textura);
+}
 
     // atualiza movimento das plataformas móveis
     atualizarPlataformas();
@@ -136,7 +128,7 @@ function draw() {
     desenharAlvos();
     checarBlocosNosAlvos();
     verificarAlvosCompletos(); // ativa recarga quando apropriado
-
+    
     // desenha colecionáveis (só se não coletados)
     desenharColecionaveis();
 
@@ -354,22 +346,23 @@ function checarColisaoPlataformas() {
 
 // Função para criar plataformas móveis
 function criarPlataforma(x, y, w, h, options = {}) {
-    let plataforma = {
-        x: x,
-        y: y,
-        w: w,
-        h: h,
-        dx: options.dx || 0,       // velocidade horizontal
-        dy: options.dy || 0,       // velocidade vertical
-        minX: options.minX ?? x,   // limite mínimo X
-        maxX: options.maxX ?? x,   // limite máximo X
-        minY: options.minY ?? y,   // limite mínimo Y
-        maxY: options.maxY ?? y,   // limite máximo Y
-        adicionado: options.adicionado || false, // se foi adicionado pelo jogador no editor
-        nomeItem: options.nomeItem || null
-    };
-    plataformas.push(plataforma);
-    return plataforma;
+  let plataforma = {
+    x: x,
+    y: y,
+    w: w,
+    h: h,
+    textura: options.textura || "blocoMeio", // 🔹 tipo de textura
+    dx: options.dx || 0,
+    dy: options.dy || 0,
+    minX: options.minX ?? x,
+    maxX: options.maxX ?? x,
+    minY: options.minY ?? y,
+    maxY: options.maxY ?? y,
+    adicionado: options.adicionado || false,
+    nomeItem: options.nomeItem || null
+  };
+  plataformas.push(plataforma);
+  return plataforma;
 }
 
 function desenharAlvos() {
@@ -511,18 +504,23 @@ function desenharHUD() {
 }
 
 //                  ---------- core ---------------
-function desenharPlataforma(x, y, largura, altura) {
-    let imgW = blocoMeio.width;
-    let imgH = blocoMeio.height;
+function desenharPlataforma(x, y, largura, altura, textura) {
+  let img;
+  if (textura === "pedra") img = pedra;
+  else img = blocoMeio;
 
-    for (let i = 0; i < largura; i += imgW) {
-        for (let j = 0; j < altura; j += imgH) {
-            let w = min(imgW, largura - i);
-            let h = min(imgH, altura - j);
-            image(blocoMeio, x + i, y + j, w, h);
-        }
+  let imgW = img.width;
+  let imgH = img.height;
+
+  for (let i = 0; i < largura; i += imgW) {
+    for (let j = 0; j < altura; j += imgH) {
+      let w = min(imgW, largura - i);
+      let h = min(imgH, altura - j);
+      image(img, x + i, y + j, w, h);
     }
+  }
 }
+
 
 function usarEnergia() {
     // Não usamos para ações contínuas; energia só é consumida ao entrar no editor (já implementado)
@@ -605,6 +603,7 @@ function mousePressed() {
     let worldMouseY = mouseY;
 
     if (!modoEditor) return;
+    
 
     // REMOVER
     if (ferramentaAtiva === "remover") {
@@ -705,20 +704,6 @@ function mouseDragged() {
 function mouseReleased() {
     plataformaSelecionada = null;
     resizeMode = null;
-}
-
-// -------------plataformas - desenho-----------------
-function desenharPlataforma(x, y, largura, altura) {
-    let imgW = blocoMeio.width;
-    let imgH = blocoMeio.height;
-
-    for (let i = 0; i < largura; i += imgW) {
-        for (let j = 0; j < altura; j += imgH) {
-            let w = min(imgW, largura - i);
-            let h = min(imgH, altura - j);
-            image(blocoMeio, x + i, y + j, w, h);
-        }
-    }
 }
 
 // determina se pode adicionar bloco naquela posição (evita sobrepor jogador ou sair do mapa)
