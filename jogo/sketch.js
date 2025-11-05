@@ -27,7 +27,7 @@ const playerW = 100;
 const playerH = 100;
 
 // hitbox do personagem
-const hitboxW = 60;
+const hitboxW = 50;
 const hitboxH = 90;
 const hitboxOffsetX = 25;
 const hitboxOffsetY = 20;
