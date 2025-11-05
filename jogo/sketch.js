@@ -23,11 +23,11 @@ let gravidade = 0.8;
 let noChao = false;
 
 // dimensões do sprite
-const playerW = 100;
+const playerW = 90;
 const playerH = 100;
 
 // hitbox do personagem
-const hitboxW = 60;
+const hitboxW = 50;
 const hitboxH = 80;
 const hitboxOffsetX = 25;
 const hitboxOffsetY = 20;
