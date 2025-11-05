@@ -7,6 +7,11 @@ let frameSize = 100;
 let runFrame = 0;
 let frameDelay = 6;
 let frameCountAnim = 0;
+let idleSheet;
+let idleFrame = 0;
+const idleFrameSize = 100;
+let idleDelay = 12;
+let idleCounter = 0;
 
 
 let inventario = [
@@ -75,6 +80,7 @@ function preload(){
     caio = loadImage("persona/Caio.png");
     pedra = loadImage("blocos img/pedra.png");
     runSheet = loadImage("persona/Caio-Sp.png");
+    idleSheet = loadImage("persona/Caio-Pa.png");
 }
 
 // ================== SETUP ==================
@@ -143,32 +149,49 @@ function draw() {
 
   if (!modoEditor) moverPersonagem();
 
-  //===== PLAYER SPRITE =====
+
+
+  //===== PLAYER SPRITE & ANIMAÇÃO =====
+
   let isMoving = keyIsDown(65) || keyIsDown(37) || keyIsDown(68) || keyIsDown(39);
 
-  if (isMoving) {
+  let spriteSheet;
+  let sx;
+
+  // idle anim se parado no chão
+  if (!isMoving && noChao) {
+    idleCounter++;
+    if (idleCounter >= idleDelay) {
+      idleFrame = (idleFrame + 1) % 4;
+      idleCounter = 0;
+    }
+    spriteSheet = idleSheet;
+    sx = idleFrame * frameSize;
+  } else {
+    // corrida
     frameCountAnim++;
     if (frameCountAnim >= frameDelay) {
       runFrame = (runFrame + 1) % 4;
       frameCountAnim = 0;
     }
-  } else {
-    runFrame = 0;
+    spriteSheet = runSheet;
+    sx = runFrame * frameSize;
   }
 
-  let sx = runFrame * frameSize;
 
+
+  // desenha o personagem
   push();
   translate(posX, posY);
 
   if (olhandoEsquerda) {
     scale(-1,1);
-    image(runSheet, -frameSize, 0, frameSize, frameSize, sx, 0, frameSize, frameSize);
+    image(spriteSheet, -frameSize, 0, frameSize, frameSize, sx, 0, frameSize, frameSize);
   } else {
-    image(runSheet, 0, 0, frameSize, frameSize, sx, 0, frameSize, frameSize);
+    image(spriteSheet, 0, 0, frameSize, frameSize, sx, 0, frameSize, frameSize);
   }
 
-  // hitbox só visível no editor
+  // hitbox só no editor
   if (modoEditor) {
     noFill();
     stroke(0,255,0);
@@ -176,10 +199,12 @@ function draw() {
     noStroke();
   }
 
-  pop();
-  pop();
+  pop(); // personagem
+  pop(); // camera
 
-  // HUD fora da câmera
+
+
+  // ===== HUD =====
   desenharEnergia();
   desenharHUD();
   
@@ -200,7 +225,7 @@ function draw() {
     fill(255);
     textAlign(CENTER,CENTER);
     textSize(48);
-    text("🎉 Você venceu! 🎉",width/2,height/2 - 40);
+    text("🎉 Você venceu! 🎉",width / 2,height / 2 - 40);
     textSize(18);
     text("Pressione F5 para reiniciar.",width/2,height/2 + 20);
     noLoop();
