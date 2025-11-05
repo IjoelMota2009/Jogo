@@ -267,7 +267,7 @@ function draw() {
 }
 // ---------------- funções auxiliares ----------------
 function chao() {
-  for (let x = 0; x < WORLD_WIDTH; x += TILE_SIZE) {
+  for (let x = 0; x < width; x += TILE_SIZE) {
     drawTile(0, 0, x, 705);
   }
 }
