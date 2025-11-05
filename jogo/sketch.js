@@ -273,17 +273,9 @@ function chao() {
 // ================== moverPersonagem (substituir a função atual) ==================
 function moverPersonagem() {
   // velocidade horizontal desejada
-  let targetVX = 0;
-
-if (keyIsDown(65) || keyIsDown(37)) targetVX = -5;
-if (keyIsDown(68) || keyIsDown(39)) targetVX = 5;
-
-// controle de direção mais suave no ar
-if (!noChao) {
-  vx = lerp(vx, targetVX, 0.15);
-} else {
-  vx = targetVX;
-}
+  let vx = 0;
+  if (keyIsDown(65) || keyIsDown(37)) vx = -5;
+  if (keyIsDown(68) || keyIsDown(39)) vx = 5;
 
   // marca direção de olhar (mantém variável que você já usa)
   if (vx < 0) olhandoEsquerda = true;
