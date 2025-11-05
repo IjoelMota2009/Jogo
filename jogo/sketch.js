@@ -192,14 +192,18 @@ for (let p of plataformas) {
         noLoop();
 
     }
-
-let sy = 0;
+// ==== Desenhar sprite do jogador dentro da câmera ====
+let isMoving = keyIsDown(65) || keyIsDown(37) || keyIsDown(68) || keyIsDown(39);
 
 // Animação
-frameCountAnim++;
-if (frameCountAnim >= frameDelay) {
-  runFrame = (runFrame + 1) % 4; 
-  frameCountAnim = 0;
+if (isMoving) {
+  frameCountAnim++;
+  if (frameCountAnim >= frameDelay) {
+    runFrame = (runFrame + 1) % 4;
+    frameCountAnim = 0;
+  }
+} else {
+  runFrame = 0; // parado fica no frame 0
 }
 
 let sx = runFrame * frameSize;
@@ -214,7 +218,6 @@ if (olhandoEsquerda) {
 } else {
   image(runSheet, 0, 0, frameSize, frameSize, sx, 0, frameSize, frameSize);
 }
-
 pop();
 
 }
@@ -226,25 +229,6 @@ function chao() {
     image(blocoMeio, x, chaoY, blocoMeio.width, 50);
    }
 }
-
-//function personagem() {
-    // desenha personagem no mundo (posX, posY já são coordenadas do mundo)
-//image(caio, posX, posY, playerW, playerH);
-
-    // mostra hitbox apenas no editor para ajuste
-    //if (modoEditor) {
-        //noFill();
-       // stroke(0, 255, 0);
-       // strokeWeight(2);
-        //rect(
-           // posX + hitboxOffsetX,
-           // posY + hitboxOffsetY,
-           // hitboxW,
-           // hitboxH
-       // );
-        //noStroke();
-   // }
-
 function moverPersonagem() {
     // velocidade desejada
     let vx = 0;
