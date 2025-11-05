@@ -14,7 +14,7 @@ let idleDelay = 12;
 let idleCounter = 0;
 let jumpSheet;
 let jumpFrame = 0;
-let jumpDelay = 6; // anima mais rápido no ar
+let jumpDelay = 12; // anima mais rápido no ar
 let jumpCounter = 0;
 
 let inventario = [
