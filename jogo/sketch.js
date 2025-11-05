@@ -676,16 +676,19 @@ function keyPressed() {
         // - está no chão OU
         // - dentro do coyote time OU
         // - ainda no período do jump buffer
-        if (
-            noChao ||
-            timeSinceGround < COYOTE_TIME ||
-            timeSincePress < JUMP_BUFFER
-        ) {
-            velY = jumpForce; 
-            noChao = false;
-            lastGrounded = -99999; // impede pulo duplo
-        }
-    }
+        // só pula se não pulou no ar ainda
+if (
+    noChao ||
+    (millis() - lastGrounded < COYOTE_TIME) ||
+    (millis() - lastJumpPress < JUMP_BUFFER && noChao)
+) {
+    velY = jumpForce;
+    noChao = false;
+
+    // limpa buffer e coyote depois do pulo
+    lastGrounded = -99999; 
+    lastJumpPress = -99999;
+}
 
     // ===== Troca slot do inventário =====
     if (key >= '1' && key <= String(inventario.length)) {
