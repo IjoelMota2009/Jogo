@@ -17,6 +17,7 @@ let lastJumpPress = 0;
 const JUMP_BUFFER = 120; // ms pra "guardar" o comando de pulo
 const COYOTE_TIME = 120; // ms que pode pular após cair
 const jumpForce = -15;   // força do pulo
+const TILE_SIZE = 48;
 
 
 let inventario = [
@@ -87,6 +88,7 @@ function preload(){
     runSheet = loadImage("persona/Caio-Sp.png");
     idleSheet = loadImage("persona/Caio-Pa.png");
     jumpImg = loadImage("persona/Caio-Pu.png");
+    tileset = loadImage("blocos img/assets tiles/tileset.png");
 }
 
 // ================== SETUP ==================
@@ -266,9 +268,9 @@ function draw() {
 // ---------------- funções auxiliares ----------------
 function chao() {
    let chaoY = 705;
-   for( let x = 0; x < WORLD_WIDTH; x += blocoMeio.width){
-    image(blocoMeio, x, chaoY, blocoMeio.width, 50);
-   }
+   for (let x = 0; x < WORLD_WIDTH; x += TILE_SIZE) {
+  drawTile(0, 0, x, 705); // 705 é seu chão atual
+}
 }
 // ================== moverPersonagem (substituir a função atual) ==================
 function moverPersonagem() {
@@ -510,6 +512,16 @@ function desenharColecionaveis() {
         chave.active = true;
         console.log("🔑 Todos os puzzleBlocks coletados — chave ativada!");
     }
+}
+
+function drawTile(tileX, tileY, worldX, worldY) {
+  image(
+    tileset,
+    worldX, worldY,
+    TILE_SIZE, TILE_SIZE,
+    tileX * TILE_SIZE, tileY * TILE_SIZE,
+    TILE_SIZE, TILE_SIZE
+  );
 }
 
 function desenharChave() {
