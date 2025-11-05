@@ -341,6 +341,9 @@ function moverPersonagem() {
   // Se estiver no chão, atualiza lastGrounded (para possíveis coyote jumps)
   if (noChao) lastGrounded = millis();
 
+if (noChao) {
+    lastGrounded = millis();
+}  
   // mover horizontal
   posX += vx;
   hbLeft = posX + hitboxOffsetX;
