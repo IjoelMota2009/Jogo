@@ -216,7 +216,6 @@ if (olhandoEsquerda) {
 }
 
 pop();
-pop();
 }
 
 // ---------------- funções auxiliares ----------------
