@@ -2,9 +2,11 @@
 let caio;
 let blocoMeio;
 let pedra;
-let runSheet;
+let olhandoEsquerda = false;
+let frameSize = 100; 
 let runFrame = 0;
-const frameSize = 100;
+let frameDelay = 6;
+let frameCountAnim = 0;
 
 
 let inventario = [
@@ -152,7 +154,7 @@ for (let p of plataformas) {
     }
 
     // desenha personagem (mundo)
-    personagem();
+   //personagem();
 
     // atualiza movimento do personagem se estiver no modo jogo
     if (!modoEditor) {
@@ -190,20 +192,30 @@ for (let p of plataformas) {
         noLoop();
 
     }
-   let sx = runFrame * frameSize;
+
 let sy = 0;
 
-// desenha o personagem
+// Animação
+frameCountAnim++;
+if (frameCountAnim >= frameDelay) {
+  runFrame = (runFrame + 1) % 4; 
+  frameCountAnim = 0;
+}
+
+let sx = runFrame * frameSize;
+
+// desenha o personagem sprite
 push();
 translate(posX, posY);
 
 if (olhandoEsquerda) {
   scale(-1, 1);
-  image(runSheet, -frameSize, 0, frameSize, frameSize, sx, sy, frameSize, frameSize);
+  image(runSheet, -frameSize, 0, frameSize, frameSize, sx, 0, frameSize, frameSize);
 } else {
-  image(runSheet, 0, 0, frameSize, frameSize, sx, sy, frameSize, frameSize);
+  image(runSheet, 0, 0, frameSize, frameSize, sx, 0, frameSize, frameSize);
 }
 
+pop();
 pop();
 }
 
@@ -215,7 +227,7 @@ function chao() {
    }
 }
 
-function personagem() {
+//function personagem() {
     // desenha personagem no mundo (posX, posY já são coordenadas do mundo)
     image(caio, posX, posY, playerW, playerH);
 
@@ -232,14 +244,19 @@ function personagem() {
         );
         noStroke();
     }
-}
+}//
 
 function moverPersonagem() {
     // velocidade desejada
     let vx = 0;
-    if (keyIsDown(65) || keyIsDown(37)) vx = -5; // esquerda
-    if (keyIsDown(68) || keyIsDown(39)) vx = 5;  // direita
-
+    if (keyIsDown(65) || keyIsDown(37)) {
+  vx = -5;
+  olhandoEsquerda = true;
+}
+if (keyIsDown(68) || keyIsDown(39)) {
+  vx = 5;
+  olhandoEsquerda = false;
+}
     // aplica gravidade
     velY += gravidade;
     let vy = velY;
