@@ -635,40 +635,62 @@ function desenharHotbar() {
 // teclas
 function keyPressed() {
 
-  // ===== Entrar/Sair modo editor =====
-  if (key === 'E') {
-    modoEditor = !modoEditor;
-    return;
-  }
-
-  // ===== Sistema de pulo =====
-  if (key === ' ' || key === 'W' || keyCode === UP_ARROW) {
-    
-    // registra o momento que o jogador pediu pulo
-    lastJumpPress = millis();
-
-    let timeSinceGround = millis() - lastGrounded;
-    let timeSincePress = millis() - lastJumpPress;
-
-    // pode pular se:
-    // - está no chão (normal)
-    // - está no coyote time
-    // - apertou antes e caiu na plataforma (jump buffer)
-    if (
-      noChao ||
-      timeSinceGround < COYOTE_TIME ||
-      timeSincePress < JUMP_BUFFER
-    ) {
-      velY = jumpForce; 
-      noChao = false;
-      lastGrounded = -99999; // para não dar pulo duplo
+    // ===== Alterna entre jogo/editor com custo de energia =====
+    if (key === 'e' || key === 'E') {
+        if (!modoEditor) {
+            // entrando no editor
+            if (energia >= custoEditar) {
+                energia -= custoEditar;
+                modoEditor = true;
+                console.log("🛠️ Entrou no modo editor. Energia restante:", energia);
+            } else {
+                console.log("⚡ Energia insuficiente para entrar no editor!");
+            }
+        } else {
+            // saindo do editor
+            modoEditor = false;
+            console.log("🔁 Saiu do modo editor.");
+        }
+        return; // evita conflito com pulo
     }
-  }
 
-  // ===== Soltar bloco no editor =====
-  if (modoEditor) {
-    handleEditorInputs(key);
-  }
+    // ===== Quando no editor: mudar ferramenta =====
+    if (modoEditor) {
+        if (key === 'a' || key === 'A') ferramentaAtiva = "adicionar";
+        if (key === 'm' || key === 'M') ferramentaAtiva = "mover";
+        if (key === 'r' || key === 'R') ferramentaAtiva = "redimensionar";
+        if (key === 'z' || key === 'Z') ferramentaAtiva = "remover";
+        return; // editor não pula nem mexe personagem
+    }
+
+    // ===== Sistema de pulo no modo jogo =====
+    // salva o momento que o jogador pediu pulo (jump buffer)
+    if (key === 'w' || keyCode === UP_ARROW || key === ' ') {
+        lastJumpPress = millis();
+
+        let timeSinceGround = millis() - lastGrounded;
+        let timeSincePress = millis() - lastJumpPress;
+
+        // pode pular se:
+        // - está no chão OU
+        // - dentro do coyote time OU
+        // - ainda no período do jump buffer
+        if (
+            noChao ||
+            timeSinceGround < COYOTE_TIME ||
+            timeSincePress < JUMP_BUFFER
+        ) {
+            velY = jumpForce; 
+            noChao = false;
+            lastGrounded = -99999; // impede pulo duplo
+        }
+    }
+
+    // ===== Troca slot do inventário =====
+    if (key >= '1' && key <= String(inventario.length)) {
+        slotAtivo = int(key) - 1;
+        console.log("Slot ativo:", slotAtivo, inventario[slotAtivo].nome);
+    }
 }
 
 // -------------- mouse -------
