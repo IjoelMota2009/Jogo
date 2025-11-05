@@ -14,10 +14,9 @@ let idleDelay = 12;
 let idleCounter = 0;
 let jumpImg;
 let lastJumpPress = 0;
-let lastGrounded = 0;
-const JUMP_BUFFER = 120; 
-const COYOTE_TIME = 120;
-const jumpForce = -15; // você usava -15 antes
+const JUMP_BUFFER = 120; // ms pra "guardar" o comando de pulo
+const COYOTE_TIME = 120; // ms que pode pular após cair
+const jumpForce = -11;   // força do pulo
 
 
 let inventario = [
@@ -341,9 +340,6 @@ function moverPersonagem() {
   // Se estiver no chão, atualiza lastGrounded (para possíveis coyote jumps)
   if (noChao) lastGrounded = millis();
 
-if (noChao) {
-    lastGrounded = millis();
-}  
   // mover horizontal
   posX += vx;
   hbLeft = posX + hitboxOffsetX;
@@ -679,19 +675,16 @@ function keyPressed() {
         // - está no chão OU
         // - dentro do coyote time OU
         // - ainda no período do jump buffer
-        // só pula se não pulou no ar ainda
-if (
-    noChao ||
-    (millis() - lastGrounded < COYOTE_TIME) ||
-    (millis() - lastJumpPress < JUMP_BUFFER && noChao)
-) {
-    velY = jumpForce;
-    noChao = false;
-
-    // limpa buffer e coyote depois do pulo
-    lastGrounded = -99999; 
-    lastJumpPress = -99999;
-}
+        if (
+            noChao ||
+            timeSinceGround < COYOTE_TIME ||
+            timeSincePress < JUMP_BUFFER
+        ) {
+            velY = jumpForce; 
+            noChao = false;
+            lastGrounded = -99999; // impede pulo duplo
+        }
+    }
 
     // ===== Troca slot do inventário =====
     if (key >= '1' && key <= String(inventario.length)) {
