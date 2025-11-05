@@ -218,6 +218,12 @@ if (olhandoEsquerda) {
 } else {
   image(runSheet, 0, 0, frameSize, frameSize, sx, 0, frameSize, frameSize);
 }
+if (modoEditor) {
+  noFill();
+  stroke(0,255,0);
+  rect(posX + hitboxOffsetX, posY + hitboxOffsetY, hitboxW, hitboxH);
+  noStroke();
+}
 pop();
 
 }
