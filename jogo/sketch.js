@@ -13,14 +13,7 @@ const idleFrameSize = 100;
 let idleDelay = 12;
 let idleCounter = 0;
 let jumpImg;
-let lastGrounded = 0;
-const COYOTE_TIME = 120; // ms
-let animSpeed = {
-  idle: 300,
-  walk: 90,
-  jump: 200,
-  fall: 150
-};
+
 
 
 let inventario = [
@@ -129,19 +122,24 @@ criarPlataforma(2600, 320, 180, 35, { textura: "blocoMeio" });
 
 // ================== DRAW ==================
 function draw() {
+  // fundo
   background(55);
 
-  // câmera segue o jogador
+  // atualiza camera para seguir jogador
   camX = constrain(posX - width / 2, 0, WORLD_WIDTH - width);
 
+  // tudo que desenha em mundo vai aqui
   push();
   translate(-camX, 0);
 
-  // chão e mundo
+  // chão e plataformas
   chao();
   for (let p of plataformas) desenharPlataforma(p.x, p.y, p.w, p.h, p.textura);
 
+  // atualiza movimento das plataformas móveis
   atualizarPlataformas();
+
+  // elementos do jogo
   desenharAlvos();
   checarBlocosNosAlvos();
   verificarAlvosCompletos();
@@ -149,79 +147,83 @@ function draw() {
   desenharChave();
   desenharSaida();
 
-  // editor highlight
+  // editor highlight (se houver)
   if (modoEditor && plataformaSelecionada) {
-    stroke(255,0,0);
+    stroke(255, 0, 0);
     noFill();
     rect(plataformaSelecionada.x, plataformaSelecionada.y, plataformaSelecionada.w, plataformaSelecionada.h);
     noStroke();
   }
 
+  // física e movimento (aplica primeiro para atualizar posY antes de desenhar)
   if (!modoEditor) moverPersonagem();
 
-
-
-  //===== PLAYER SPRITE & ANIMAÇÃO =====
-
+  // ===== PLAYER SPRITE & ANIMAÇÃO =====
+  // detectar movimento de teclas (usado só para decidir "isMoving")
   let isMoving = keyIsDown(65) || keyIsDown(37) || keyIsDown(68) || keyIsDown(39);
 
- // animações
-let spriteSheet;
-let sx;
+  // quais sprites usar e qual coluna (sx) cortar da sprite sheet
+  let spriteSheetToDraw;
+  let sx = 0;
 
-// PULO (subindo)
-if (!noChao && velY < 0) {
-  spriteSheet = jumpImg;
-  sx = 0; // frame único
+  // número de frames nas sheets (calcula a partir da largura)
+  let runFrames = runSheet ? Math.floor(runSheet.width / frameSize) : 4;
+  let idleFrames = idleSheet ? Math.floor(idleSheet.width / frameSize) : 4;
 
-// QUEDA (por enquanto usa idle até criarmos o sprite de queda)
-} else if (!noChao && velY > 2) {
-  idleCounter++;
-  if (idleCounter >= idleDelay) {
-    idleFrame = (idleFrame + 1) % 4;
-    idleCounter = 0;
+  // Prioridade: pulo (subindo) -> queda -> idle -> corrida
+  if (!noChao && velY < 0) {
+    // PULO (subindo)
+    spriteSheetToDraw = jumpImg;
+    sx = 0; // frame único de pulo
+  } else if (!noChao && velY > 2) {
+    // QUEDA — usa a sheet de idle como fallback (ou um sprite de queda se tiver)
+    spriteSheetToDraw = idleSheet;
+    // animação leve de "queda" usando idle frames
+    idleCounter++;
+    if (idleCounter >= idleDelay) {
+      idleFrame = (idleFrame + 1) % idleFrames;
+      idleCounter = 0;
+    }
+    sx = idleFrame * frameSize;
+  } else if (!isMoving && noChao) {
+    // IDLE
+    spriteSheetToDraw = idleSheet;
+    idleCounter++;
+    if (idleCounter >= idleDelay) {
+      idleFrame = (idleFrame + 1) % idleFrames;
+      idleCounter = 0;
+    }
+    sx = idleFrame * frameSize;
+  } else {
+    // CORRIDA
+    spriteSheetToDraw = runSheet;
+    frameCountAnim++;
+    if (frameCountAnim >= frameDelay) {
+      runFrame = (runFrame + 1) % runFrames;
+      frameCountAnim = 0;
+    }
+    sx = runFrame * frameSize;
   }
-  spriteSheet = idleSheet;
-  sx = idleFrame * frameSize;
 
-// IDLE
-} else if (!isMoving && noChao) {
-  idleCounter++;
-  if (idleCounter >= idleDelay) {
-    idleFrame = (idleFrame + 1) % 4;
-    idleCounter = 0;
-  }
-  spriteSheet = idleSheet;
-  sx = idleFrame * frameSize;
-
-// CORRIDA
-} else {
-  frameCountAnim++;
-  if (frameCountAnim >= frameDelay) {
-    runFrame = (runFrame + 1) % 4;
-    frameCountAnim = 0;
-  }
-  spriteSheet = runSheet;
-  sx = runFrame * frameSize;
-}
-
-
-
-  // desenha o personagem
+  // Desenha o personagem com flip corretamente
   push();
   translate(posX, posY);
 
   if (olhandoEsquerda) {
-    scale(-1,1);
-    image(spriteSheet, -frameSize, 0, frameSize, frameSize, sx, 0, frameSize, frameSize);
+    // flip horizontal: desenha a imagem virada
+    // Usando mesma assinatura que você já usava para crop:
+    // image(img, dx, dy, dWidth, dHeight, sx, sy, sWidth, sHeight)
+    // mas para compatibilidade entre versões, usamos a forma que já funciona no seu projeto:
+    scale(-1, 1);
+    image(spriteSheetToDraw, -frameSize, 0, frameSize, frameSize, sx, 0, frameSize, frameSize);
   } else {
-    image(spriteSheet, 0, 0, frameSize, frameSize, sx, 0, frameSize, frameSize);
+    image(spriteSheetToDraw, 0, 0, frameSize, frameSize, sx, 0, frameSize, frameSize);
   }
 
   // hitbox só no editor
   if (modoEditor) {
     noFill();
-    stroke(0,255,0);
+    stroke(0, 255, 0);
     rect(hitboxOffsetX, hitboxOffsetY, hitboxW, hitboxH);
     noStroke();
   }
@@ -229,36 +231,35 @@ if (!noChao && velY < 0) {
   pop(); // personagem
   pop(); // camera
 
-
-
-  // ===== HUD =====
+  // ===== HUD / Overlays =====
   desenharEnergia();
   desenharHUD();
-  
-  fill(0,150); 
-  rect(10,10,320,60,5);
+
+  // indicador de modo / hotbar
+  fill(0, 150);
+  rect(10, 10, 320, 60, 5);
   fill(255);
   textSize(14);
-  textAlign(LEFT,TOP);
-  text("Modo: " + (modoEditor ? "Editor" : "Jogo"),20,15);
-  if(modoEditor){
-    text("Ferramenta: " + ferramentaAtiva,20,35);
+  textAlign(LEFT, TOP);
+  text("Modo: " + (modoEditor ? "Editor" : "Jogo"), 20, 15);
+  if (modoEditor) {
+    text("Ferramenta: " + ferramentaAtiva.charAt(0).toUpperCase() + ferramentaAtiva.slice(1), 20, 35);
     desenharHotbar();
   }
 
-  if(venceu){
-    fill(0,0,0,200);
-    rect(0,0,width,height);
+  // vitória
+  if (venceu) {
+    fill(0, 0, 0, 200);
+    rect(0, 0, width, height);
     fill(255);
-    textAlign(CENTER,CENTER);
+    textAlign(CENTER, CENTER);
     textSize(48);
-    text("🎉 Você venceu! 🎉",width / 2,height / 2 - 40);
+    text("🎉 Você venceu! 🎉", width / 2, height / 2 - 40);
     textSize(18);
-    text("Pressione F5 para reiniciar.",width/2,height/2 + 20);
+    text("Pressione F5 para reiniciar.", width / 2, height / 2 + 20);
     noLoop();
   }
 }
-
 // ---------------- funções auxiliares ----------------
 function chao() {
    let chaoY = 705;
@@ -266,98 +267,110 @@ function chao() {
     image(blocoMeio, x, chaoY, blocoMeio.width, 50);
    }
 }
+// ================== moverPersonagem (substituir a função atual) ==================
 function moverPersonagem() {
-    // velocidade desejada
-    let vx = 0;
-    if (keyIsDown(65) || keyIsDown(37)) {
-  vx = -5;
-  olhandoEsquerda = true;
-}
-if (keyIsDown(68) || keyIsDown(39)) {
-  vx = 5;
-  olhandoEsquerda = false;
-}
-    // aplica gravidade
-    velY += gravidade;
-    let vy = velY;
+  // velocidade horizontal desejada
+  let vx = 0;
+  if (keyIsDown(65) || keyIsDown(37)) vx = -5;
+  if (keyIsDown(68) || keyIsDown(39)) vx = 5;
 
-    // hitbox atual
-    let hbLeft = posX + hitboxOffsetX;
-    let hbRight = hbLeft + hitboxW;
-    let hbTop = posY + hitboxOffsetY;
-    let hbBottom = hbTop + hitboxH;
+  // marca direção de olhar (mantém variável que você já usa)
+  if (vx < 0) olhandoEsquerda = true;
+  else if (vx > 0) olhandoEsquerda = false;
 
-    noChao = false;
+  // aplica gravidade
+  velY += gravidade;
+  let vy = velY;
 
-    // mover eixo Y primeiro
-    posY += vy;
-    hbTop = posY + hitboxOffsetY;
-    hbBottom = hbTop + hitboxH;
+  // atualiza hitbox local
+  let hbLeft = posX + hitboxOffsetX;
+  let hbRight = hbLeft + hitboxW;
+  let hbTop = posY + hitboxOffsetY;
+  let hbBottom = hbTop + hitboxH;
 
-    for (let p of plataformas) {
-        if (!p.dx) p.dx = 0;
-        if (!p.dy) p.dy = 0;
+  // assume no chão = falso até checar colisões
+  noChao = false;
 
-        let platTop = p.y;
-        let platBottom = p.y + p.h;
-        let platLeft = p.x;
-        let platRight = p.x + p.w;
+  // mover vertical primeiro
+  posY += vy;
+  hbTop = posY + hitboxOffsetY;
+  hbBottom = hbTop + hitboxH;
 
-        // colisão vertical
-        if (hbRight > platLeft && hbLeft < platRight) {
-            // caindo
-            if (vy > 0 && hbBottom > platTop && hbTop < platTop) {
-                posY = platTop - hitboxH - hitboxOffsetY;
-                velY = 0;
-                noChao = true;
+  for (let p of plataformas) {
+    if (!p.dx) p.dx = 0;
+    if (!p.dy) p.dy = 0;
 
-                // mover personagem junto da plataforma (se p se move)
-                posX += p.dx;
-                posY += p.dy;
-            }
-            // subindo
-            if (vy < 0 && hbTop < platBottom && hbBottom > platBottom) {
-                posY = platBottom - hitboxOffsetY;
-                velY = 0;
-            }
-        }
-    }
+    let platTop = p.y;
+    let platBottom = p.y + p.h;
+    let platLeft = p.x;
+    let platRight = p.x + p.w;
 
-    // colisão com chão
-    let chaoY = 705;
-    hbBottom = posY + hitboxOffsetY + hitboxH;
-    if (hbBottom >= chaoY) {
-        posY = chaoY - hitboxH - hitboxOffsetY;
+    // colisão vertical (cair sobre plataforma)
+    if (hbRight > platLeft && hbLeft < platRight) {
+      // caindo
+      if (vy > 0 && hbBottom > platTop && hbTop < platTop) {
+        posY = platTop - hitboxH - hitboxOffsetY;
         velY = 0;
         noChao = true;
+
+        // empurra junto com plataforma móvel
+        posX += p.dx;
+        posY += p.dy;
+      }
+      // batendo de baixo
+      if (vy < 0 && hbTop < platBottom && hbBottom > platBottom) {
+        posY = platBottom - hitboxOffsetY;
+        velY = 0;
+      }
     }
+  }
 
-    // eixo X (horizontal)
-    posX += vx;
-    hbLeft = posX + hitboxOffsetX;
-    hbRight = hbLeft + hitboxW;
+  // chão do mundo
+  let chaoY = 705;
+  hbBottom = posY + hitboxOffsetY + hitboxH;
+  if (hbBottom >= chaoY) {
+    posY = chaoY - hitboxH - hitboxOffsetY;
+    velY = 0;
+    noChao = true;
+  }
 
-    for (let p of plataformas) {
-        let platTop = p.y;
-        let platBottom = p.y + p.h;
-        let platLeft = p.x;
-        let platRight = p.x + p.w;
+  // Se estiver no chão, atualiza lastGrounded (para possíveis coyote jumps)
+  if (noChao) lastGrounded = millis();
 
-        // colisão horizontal (bloqueia atravessar plataforma lateralmente)
-        if (hbBottom > platTop && hbTop < platBottom) {
-            // esquerda
-            if (vx < 0 && hbLeft < platRight && hbRight > platRight) {
-                posX = platRight - hitboxOffsetX;
-            }
-            // direita
-            if (vx > 0 && hbRight > platLeft && hbLeft < platLeft) {
-                posX = platLeft - hitboxW - hitboxOffsetX;
-            }
-        }
+  // mover horizontal
+  posX += vx;
+  hbLeft = posX + hitboxOffsetX;
+  hbRight = hbLeft + hitboxW;
+
+  // colisão horizontal (bloqueia passar por plataformas pelas laterais)
+  for (let p of plataformas) {
+    let platTop = p.y;
+    let platBottom = p.y + p.h;
+    let platLeft = p.x;
+    let platRight = p.x + p.w;
+
+    if (hbBottom > platTop && hbTop < platBottom) {
+      // esquerda
+      if (vx < 0 && hbLeft < platRight && hbRight > platRight) {
+        posX = platRight - hitboxOffsetX;
+      }
+      // direita
+      if (vx > 0 && hbRight > platLeft && hbLeft < platLeft) {
+        posX = platLeft - hitboxW - hitboxOffsetX;
+      }
     }
+  }
 
-    // limite do mundo
-    posX = constrain(posX, 0, WORLD_WIDTH - playerW);
+  // limites do mundo
+  posX = constrain(posX, 0, WORLD_WIDTH - playerW);
+
+  // reset safety (se cair muito)
+  if (posY > WORLD_HEIGHT + 200) {
+    posX = 100;
+    posY = 100;
+    velY = 0;
+  }
+
 }
 
 // Atualiza movimento das plataformas móveis
