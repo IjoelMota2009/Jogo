@@ -244,7 +244,7 @@ function chao() {
         );
         noStroke();
     }
-}//
+
 
 function moverPersonagem() {
     // velocidade desejada
