@@ -13,6 +13,14 @@ const idleFrameSize = 100;
 let idleDelay = 12;
 let idleCounter = 0;
 let jumpImg;
+let lastGrounded = 0;
+const COYOTE_TIME = 120; // ms
+let animSpeed = {
+  idle: 300,
+  walk: 90,
+  jump: 200,
+  fall: 150
+};
 
 
 let inventario = [
