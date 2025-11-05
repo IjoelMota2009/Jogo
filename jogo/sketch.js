@@ -12,10 +12,7 @@ let idleFrame = 0;
 const idleFrameSize = 100;
 let idleDelay = 12;
 let idleCounter = 0;
-let jumpSheet;
-let jumpFrame = 0;
-let jumpDelay = 29; // anima mais rápido no ar
-let jumpCounter = 0;
+
 
 let inventario = [
     { nome: "plataformaMovel", quantidade: 0 },
@@ -84,7 +81,6 @@ function preload(){
     pedra = loadImage("blocos img/pedra.png");
     runSheet = loadImage("persona/Caio-Sp.png");
     idleSheet = loadImage("persona/Caio-Pa.png");
-    jumpSheet = loadImage("persona/Caio-Pu.png");
 }
 
 // ================== SETUP ==================
@@ -163,41 +159,24 @@ function draw() {
   let sx;
 
   // idle anim se parado no chão
-// animação de pulo (velY < 0)
-if (!noChao && velY < 0) {
-  jumpCounter++;
-  if (jumpCounter >= jumpDelay) {
-    jumpFrame = (jumpFrame + 1) % 4;
-    jumpCounter = 0;
+  if (!isMoving && noChao) {
+    idleCounter++;
+    if (idleCounter >= idleDelay) {
+      idleFrame = (idleFrame + 1) % 4;
+      idleCounter = 0;
+    }
+    spriteSheet = idleSheet;
+    sx = idleFrame * frameSize;
+  } else {
+    // corrida
+    frameCountAnim++;
+    if (frameCountAnim >= frameDelay) {
+      runFrame = (runFrame + 1) % 4;
+      frameCountAnim = 0;
+    }
+    spriteSheet = runSheet;
+    sx = runFrame * frameSize;
   }
-  spriteSheet = jumpSheet;
-  sx = jumpFrame * frameSize;
-
-// animação de queda (velY > 2) - por enquanto usa idle até você mandar a queda
-} else if (!noChao && velY > 2) {
-  spriteSheet = idleSheet; // depois trocamos pela queda
-  sx = idleFrame * frameSize;
-
-// idle
-} else if (!isMoving && noChao) {
-  idleCounter++;
-  if (idleCounter >= idleDelay) {
-    idleFrame = (idleFrame + 1) % 4;
-    idleCounter = 0;
-  }
-  spriteSheet = idleSheet;
-  sx = idleFrame * frameSize;
-
-// corrida
-} else {
-  frameCountAnim++;
-  if (frameCountAnim >= frameDelay) {
-    runFrame = (runFrame + 1) % 4;
-    frameCountAnim = 0;
-  }
-  spriteSheet = runSheet;
-  sx = runFrame * frameSize;
-}
 
 
 
