@@ -24,7 +24,7 @@ let noChao = false;
 
 // dimensões do sprite
 const playerW = 100;
-const playerH = 90;
+const playerH = 100;
 
 // hitbox do personagem
 const hitboxW = 50;
