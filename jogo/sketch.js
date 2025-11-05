@@ -2,6 +2,10 @@
 let caio;
 let blocoMeio;
 let pedra;
+let runSheet;
+let runFrame = 0;
+const frameSize = 100;
+
 
 let inventario = [
     { nome: "plataformaMovel", quantidade: 0 },
@@ -68,6 +72,7 @@ function preload(){
     blocoMeio = loadImage("blocos img/bloco_meio.png");
     caio = loadImage("persona/Caio.png");
     pedra = loadImage("blocos img/pedra.png");
+    runSheet = loadImage("Caio-Sp.png");
 }
 
 // ================== SETUP ==================
@@ -183,7 +188,31 @@ for (let p of plataformas) {
         textSize(18);
         text("Pressione F5 para reiniciar.", width / 2, height / 2 + 20);
         noLoop();
+
     }
+   let sx = runFrame * frameSize;
+let sy = 0;
+
+// desenha o personagem
+push();
+translate(posX, posY);
+
+if (olhandoEsquerda) {
+  scale(-1, 1);
+  image(runSheet, 0, 0, frameSize, frameSize, sx, sy, frameSize, frameSize);
+} else {
+  image(runSheet, 0, 0, frameSize, frameSize, sx, sy, frameSize, frameSize);
+}
+
+pop();
+
+if (keyIsDown(65) || keyIsDown(37) || keyIsDown(68) || keyIsDown(39)) {
+  if (frameCount % 6 === 0) {
+    runFrame = (runFrame + 1) % 4; // 4 frames
+  }
+} else {
+  runFrame = 0; // parado volta ao primeiro frame
+}
 }
 
 // ---------------- funções auxiliares ----------------
