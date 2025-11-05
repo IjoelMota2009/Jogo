@@ -267,10 +267,9 @@ function draw() {
 }
 // ---------------- funções auxiliares ----------------
 function chao() {
-   let chaoY = 705;
-   for (let x = 0; x < WORLD_WIDTH; x += TILE_SIZE) {
-  drawTile(0, 0, x, 705); // 705 é seu chão atual
-}
+  for (let x = 0; x < WORLD_WIDTH; x += TILE_SIZE) {
+    drawTile(0, 0, x, 705);
+  }
 }
 // ================== moverPersonagem (substituir a função atual) ==================
 function moverPersonagem() {
@@ -514,12 +513,11 @@ function desenharColecionaveis() {
     }
 }
 
-function drawTile(tileX, tileY, worldX, worldY) {
+function drawTile(tx, ty, wx, wy) {
   image(
     tileset,
-    worldX, worldY,
-    TILE_SIZE, TILE_SIZE,
-    tileX * TILE_SIZE, tileY * TILE_SIZE,
+    wx, wy, TILE_SIZE, TILE_SIZE,
+    tx * TILE_SIZE, ty * TILE_SIZE,
     TILE_SIZE, TILE_SIZE
   );
 }
