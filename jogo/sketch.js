@@ -72,7 +72,7 @@ function preload(){
     blocoMeio = loadImage("blocos img/bloco_meio.png");
     caio = loadImage("persona/Caio.png");
     pedra = loadImage("blocos img/pedra.png");
-    runSheet = loadImage("Caio-Sp.png");
+    runSheet = loadImage("persona/Caio-Sp.png");
 }
 
 // ================== SETUP ==================
