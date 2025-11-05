@@ -227,25 +227,6 @@ function chao() {
    }
 }
 
-//function personagem() {
-    // desenha personagem no mundo (posX, posY já são coordenadas do mundo)
-    image(caio, posX, posY, playerW, playerH);
-
-    // mostra hitbox apenas no editor para ajuste
-    if (modoEditor) {
-        noFill();
-        stroke(0, 255, 0);
-        strokeWeight(2);
-        rect(
-            posX + hitboxOffsetX,
-            posY + hitboxOffsetY,
-            hitboxW,
-            hitboxH
-        );
-        noStroke();
-    }
-
-
 function moverPersonagem() {
     // velocidade desejada
     let vx = 0;
