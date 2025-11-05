@@ -12,6 +12,7 @@ let idleFrame = 0;
 const idleFrameSize = 100;
 let idleDelay = 12;
 let idleCounter = 0;
+let jumpImg;
 
 
 let inventario = [
@@ -81,6 +82,7 @@ function preload(){
     pedra = loadImage("blocos img/pedra.png");
     runSheet = loadImage("persona/Caio-Sp.png");
     idleSheet = loadImage("persona/Caio-Pa.png");
+    jumpImg = loadImage("persona/Caio-Pu.png");
 }
 
 // ================== SETUP ==================
@@ -155,28 +157,45 @@ function draw() {
 
   let isMoving = keyIsDown(65) || keyIsDown(37) || keyIsDown(68) || keyIsDown(39);
 
-  let spriteSheet;
-  let sx;
+ // animações
+let spriteSheet;
+let sx;
 
-  // idle anim se parado no chão
-  if (!isMoving && noChao) {
-    idleCounter++;
-    if (idleCounter >= idleDelay) {
-      idleFrame = (idleFrame + 1) % 4;
-      idleCounter = 0;
-    }
-    spriteSheet = idleSheet;
-    sx = idleFrame * frameSize;
-  } else {
-    // corrida
-    frameCountAnim++;
-    if (frameCountAnim >= frameDelay) {
-      runFrame = (runFrame + 1) % 4;
-      frameCountAnim = 0;
-    }
-    spriteSheet = runSheet;
-    sx = runFrame * frameSize;
+// PULO (subindo)
+if (!noChao && velY < 0) {
+  spriteSheet = jumpImg;
+  sx = 0; // frame único
+
+// QUEDA (por enquanto usa idle até criarmos o sprite de queda)
+} else if (!noChao && velY > 2) {
+  idleCounter++;
+  if (idleCounter >= idleDelay) {
+    idleFrame = (idleFrame + 1) % 4;
+    idleCounter = 0;
   }
+  spriteSheet = idleSheet;
+  sx = idleFrame * frameSize;
+
+// IDLE
+} else if (!isMoving && noChao) {
+  idleCounter++;
+  if (idleCounter >= idleDelay) {
+    idleFrame = (idleFrame + 1) % 4;
+    idleCounter = 0;
+  }
+  spriteSheet = idleSheet;
+  sx = idleFrame * frameSize;
+
+// CORRIDA
+} else {
+  frameCountAnim++;
+  if (frameCountAnim >= frameDelay) {
+    runFrame = (runFrame + 1) % 4;
+    frameCountAnim = 0;
+  }
+  spriteSheet = runSheet;
+  sx = runFrame * frameSize;
+}
 
 
 
