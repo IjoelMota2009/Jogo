@@ -199,20 +199,12 @@ translate(posX, posY);
 
 if (olhandoEsquerda) {
   scale(-1, 1);
-  image(runSheet, 0, 0, frameSize, frameSize, sx, sy, frameSize, frameSize);
+  image(runSheet, -frameSize, 0, frameSize, frameSize, sx, sy, frameSize, frameSize);
 } else {
   image(runSheet, 0, 0, frameSize, frameSize, sx, sy, frameSize, frameSize);
 }
 
 pop();
-
-if (keyIsDown(65) || keyIsDown(37) || keyIsDown(68) || keyIsDown(39)) {
-  if (frameCount % 6 === 0) {
-    runFrame = (runFrame + 1) % 4; // 4 frames
-  }
-} else {
-  runFrame = 0; // parado volta ao primeiro frame
-}
 }
 
 // ---------------- funções auxiliares ----------------
