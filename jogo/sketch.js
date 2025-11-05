@@ -14,9 +14,10 @@ let idleDelay = 12;
 let idleCounter = 0;
 let jumpImg;
 let lastJumpPress = 0;
-const JUMP_BUFFER = 120; // ms pra "guardar" o comando de pulo
-const COYOTE_TIME = 120; // ms que pode pular após cair
-const jumpForce = -11;   // força do pulo
+let lastGrounded = 0;
+const JUMP_BUFFER = 120; 
+const COYOTE_TIME = 120;
+const jumpForce = -15; // você usava -15 antes
 
 
 let inventario = [
