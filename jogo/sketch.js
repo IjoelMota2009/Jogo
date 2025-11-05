@@ -13,7 +13,10 @@ const idleFrameSize = 100;
 let idleDelay = 12;
 let idleCounter = 0;
 let jumpImg;
-
+let lastJumpPress = 0;
+const JUMP_BUFFER = 120; // ms pra "guardar" o comando de pulo
+const COYOTE_TIME = 120; // ms que pode pular após cair
+const jumpForce = -11;   // força do pulo
 
 
 let inventario = [
@@ -270,9 +273,17 @@ function chao() {
 // ================== moverPersonagem (substituir a função atual) ==================
 function moverPersonagem() {
   // velocidade horizontal desejada
-  let vx = 0;
-  if (keyIsDown(65) || keyIsDown(37)) vx = -5;
-  if (keyIsDown(68) || keyIsDown(39)) vx = 5;
+  let targetVX = 0;
+
+if (keyIsDown(65) || keyIsDown(37)) targetVX = -5;
+if (keyIsDown(68) || keyIsDown(39)) targetVX = 5;
+
+// controle de direção mais suave no ar
+if (!noChao) {
+  vx = lerp(vx, targetVX, 0.15);
+} else {
+  vx = targetVX;
+}
 
   // marca direção de olhar (mantém variável que você já usa)
   if (vx < 0) olhandoEsquerda = true;
@@ -631,40 +642,41 @@ function desenharHotbar() {
 
 // teclas
 function keyPressed() {
-    // alterna modo editor/jogo com custo de energia ao ativar
-    if (key === 'e' || key === 'E') {
-        if (!modoEditor) {
-            // está tentando entrar no editor: checar energia
-            if (energia >= custoEditar) {
-                energia -= custoEditar;
-                modoEditor = true;
-                console.log("🛠️ Entrou no modo editor. Energia restante:", energia);
-            } else {
-                console.log("⚡ Energia insuficiente para entrar no editor!");
-            }
-        } else {
-            // saindo do editor
-            modoEditor = false;
-            console.log("🔁 Saiu do modo editor.");
-        }
-    }
 
-    if (modoEditor) {
-        // alterna ferramenta
-        if (key === 'a' || key === 'A') ferramentaAtiva = "adicionar";
-        if (key === 'm' || key === 'M') ferramentaAtiva = "mover";
-        if (key === 'r' || key === 'R') ferramentaAtiva = "redimensionar";
-        if (key === 'z' || key === 'Z') ferramentaAtiva = "remover";
-    } else {
-        // pulo do personagem
-        if ((key === 'w' || keyCode === UP_ARROW) && noChao) {
-            velY = -15;
-        }
+  // ===== Entrar/Sair modo editor =====
+  if (key === 'E') {
+    modoEditor = !modoEditor;
+    return;
+  }
+
+  // ===== Sistema de pulo =====
+  if (key === ' ' || key === 'W' || keyCode === UP_ARROW) {
+    
+    // registra o momento que o jogador pediu pulo
+    lastJumpPress = millis();
+
+    let timeSinceGround = millis() - lastGrounded;
+    let timeSincePress = millis() - lastJumpPress;
+
+    // pode pular se:
+    // - está no chão (normal)
+    // - está no coyote time
+    // - apertou antes e caiu na plataforma (jump buffer)
+    if (
+      noChao ||
+      timeSinceGround < COYOTE_TIME ||
+      timeSincePress < JUMP_BUFFER
+    ) {
+      velY = jumpForce; 
+      noChao = false;
+      lastGrounded = -99999; // para não dar pulo duplo
     }
-     if (key >= '1' && key <= String(inventario.length)) {
-        slotAtivo = int(key) - 1;
-        console.log("Slot ativo:", slotAtivo, inventario[slotAtivo].nome);
-    }
+  }
+
+  // ===== Soltar bloco no editor =====
+  if (modoEditor) {
+    handleEditorInputs(key);
+  }
 }
 
 // -------------- mouse -------
