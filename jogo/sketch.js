@@ -86,7 +86,7 @@ function setup() {
 criarPlataforma(800, 300, 150, 35, { textura: "pedra" });
 criarPlataforma(110, 450, 150, 35, { dx: 2, minX: 290, maxX: 700, textura: "blocoMeio" });
 criarPlataforma(1150, 200, 80, 35, { textura: "pedra" });
-criarPlataforma(800, 300, 150, 35, { dy: 1.5, minY: 250, maxY: 500, textura: "blocoMeio" });
+criarPlataforma(900, 500, 150, 35, { dy: 1.5, minY: 250, maxY: 500, textura: "blocoMeio" });
 
 criarPlataforma(1200, 520, 150, 35, { textura: "pedra" });
 criarPlataforma(1400, 380, 150, 35, { dx: 1.5, minX: 1400, maxX: 1600, textura: "pedra" });
@@ -113,119 +113,98 @@ criarPlataforma(2600, 320, 180, 35, { textura: "blocoMeio" });
 
 // ================== DRAW ==================
 function draw() {
-    background(55,55,55);
+  background(55);
 
-    // Atualiza câmera para seguir jogador (suave não exigida mas usamos constrain)
-    camX = constrain(posX - width / 2, 0, WORLD_WIDTH - width);
+  // câmera segue o jogador
+  camX = constrain(posX - width / 2, 0, WORLD_WIDTH - width);
 
-    // ===== DESENHO DO MUNDO (com câmera) =====
-    push();
-    translate(-camX, 0);
+  push();
+  translate(-camX, 0);
 
-    // chão (repete até WORLD_WIDTH)
-    chao();
-for (let p of plataformas) {
-  desenharPlataforma(p.x, p.y, p.w, p.h, p.textura);
-}
+  // chão e mundo
+  chao();
+  for (let p of plataformas) desenharPlataforma(p.x, p.y, p.w, p.h, p.textura);
 
-    // atualiza movimento das plataformas móveis
-    atualizarPlataformas();
+  atualizarPlataformas();
+  desenharAlvos();
+  checarBlocosNosAlvos();
+  verificarAlvosCompletos();
+  desenharColecionaveis();
+  desenharChave();
+  desenharSaida();
 
-    // desenha alvos (posicoesAlvo)
-    desenharAlvos();
-    checarBlocosNosAlvos();
-    verificarAlvosCompletos(); // ativa recarga quando apropriado
-    
-    // desenha colecionáveis (só se não coletados)
-    desenharColecionaveis();
-
-    // desenha chave (aparece somente se chave.active)
-    desenharChave();
-
-    // desenha saída (aparece dourada se ativa)
-    desenharSaida();
-
-    // seleção da plataforma no editor
-    if (modoEditor && plataformaSelecionada) {
-        stroke(255, 0, 0);
-        noFill();
-        rect(plataformaSelecionada.x, plataformaSelecionada.y, plataformaSelecionada.w, plataformaSelecionada.h);
-        noStroke();
-    }
-
-    // desenha personagem (mundo)
-   //personagem();
-
-    // atualiza movimento do personagem se estiver no modo jogo
-    if (!modoEditor) {
-        moverPersonagem();
-    }
-
-    pop(); // fim do translate da câmera
-
-    // ===== HUD e elementos fixos na tela =====
-    desenharEnergia();
-    desenharHUD();
-
-    // indicador de modo e hotbar (hotbar só se editor)
-    fill(0, 0, 0, 150);
-    rect(10, 10, 320, 60, 5);
-    fill(255);
-    textSize(14);
-    textAlign(LEFT, TOP);
-    text("Modo: " + (modoEditor ? "Editor" : "Jogo"), 20, 15);
-    if (modoEditor) {
-        text("Ferramenta: " + ferramentaAtiva.charAt(0).toUpperCase() + ferramentaAtiva.slice(1), 20, 35);
-        desenharHotbar();
-    }
-
-    // Mensagem de vitória
-    if (venceu) {
-        fill(0, 0, 0, 200);
-        rect(0, 0, width, height);
-        fill(255);
-        textAlign(CENTER, CENTER);
-        textSize(48);
-        text("🎉 Você venceu! 🎉", width / 2, height / 2 - 40);
-        textSize(18);
-        text("Pressione F5 para reiniciar.", width / 2, height / 2 + 20);
-        noLoop();
-
-    }
-// ==== Desenhar sprite do jogador dentro da câmera ====
-let isMoving = keyIsDown(65) || keyIsDown(37) || keyIsDown(68) || keyIsDown(39);
-
-// Animação
-if (isMoving) {
-  frameCountAnim++;
-  if (frameCountAnim >= frameDelay) {
-    runFrame = (runFrame + 1) % 4;
-    frameCountAnim = 0;
+  // editor highlight
+  if (modoEditor && plataformaSelecionada) {
+    stroke(255,0,0);
+    noFill();
+    rect(plataformaSelecionada.x, plataformaSelecionada.y, plataformaSelecionada.w, plataformaSelecionada.h);
+    noStroke();
   }
-} else {
-  runFrame = 0; // parado fica no frame 0
-}
 
-let sx = runFrame * frameSize;
+  if (!modoEditor) moverPersonagem();
 
-// desenha o personagem sprite
-push();
-translate(posX, posY);
+  //===== PLAYER SPRITE =====
+  let isMoving = keyIsDown(65) || keyIsDown(37) || keyIsDown(68) || keyIsDown(39);
 
-if (olhandoEsquerda) {
-  scale(-1, 1);
-  image(runSheet, -frameSize, 0, frameSize, frameSize, sx, 0, frameSize, frameSize);
-} else {
-  image(runSheet, 0, 0, frameSize, frameSize, sx, 0, frameSize, frameSize);
-}
-if (modoEditor) {
-  noFill();
-  stroke(0,255,0);
-  rect(posX + hitboxOffsetX, posY + hitboxOffsetY, hitboxW, hitboxH);
-  noStroke();
-}
-pop();
+  if (isMoving) {
+    frameCountAnim++;
+    if (frameCountAnim >= frameDelay) {
+      runFrame = (runFrame + 1) % 4;
+      frameCountAnim = 0;
+    }
+  } else {
+    runFrame = 0;
+  }
 
+  let sx = runFrame * frameSize;
+
+  push();
+  translate(posX, posY);
+
+  if (olhandoEsquerda) {
+    scale(-1,1);
+    image(runSheet, -frameSize, 0, frameSize, frameSize, sx, 0, frameSize, frameSize);
+  } else {
+    image(runSheet, 0, 0, frameSize, frameSize, sx, 0, frameSize, frameSize);
+  }
+
+  // hitbox só visível no editor
+  if (modoEditor) {
+    noFill();
+    stroke(0,255,0);
+    rect(hitboxOffsetX, hitboxOffsetY, hitboxW, hitboxH);
+    noStroke();
+  }
+
+  pop();
+  pop();
+
+  // HUD fora da câmera
+  desenharEnergia();
+  desenharHUD();
+  
+  fill(0,150); 
+  rect(10,10,320,60,5);
+  fill(255);
+  textSize(14);
+  textAlign(LEFT,TOP);
+  text("Modo: " + (modoEditor ? "Editor" : "Jogo"),20,15);
+  if(modoEditor){
+    text("Ferramenta: " + ferramentaAtiva,20,35);
+    desenharHotbar();
+  }
+
+  if(venceu){
+    fill(0,0,0,200);
+    rect(0,0,width,height);
+    fill(255);
+    textAlign(CENTER,CENTER);
+    textSize(48);
+    text("🎉 Você venceu! 🎉",width/2,height/2 - 40);
+    textSize(18);
+    text("Pressione F5 para reiniciar.",width/2,height/2 + 20);
+    noLoop();
+  }
 }
 
 // ---------------- funções auxiliares ----------------
